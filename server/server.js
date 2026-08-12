@@ -44,17 +44,6 @@ app.get('/', (req, res) => {
   res.status(200).send('SmartHire ATS API Server is Live!');
 });
 
-// Middleware to ensure Database Connection is ready before processing API requests
-app.use(async (req, res, next) => {
-  if (req.path === '/api/health' || req.path === '/') return next();
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Database connection initializing...' });
-  }
-});
-
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
