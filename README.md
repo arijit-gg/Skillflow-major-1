@@ -1,6 +1,6 @@
 # 🚀 SmartHire ATS – Applicant Tracking System
 
-![SmartHire ATS Banner](https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&q=80)
+![SmartHire ATS Banner]
 
 **SmartHire** is a full-stack, enterprise-grade Applicant Tracking System (ATS) designed for recruitment teams and HR tech startups. SmartHire streamlines job opening creation, candidate pipeline tracking across hiring stages, PDF resume viewing, automated email notifications, recruitment analytics, and CSV data export.
 
