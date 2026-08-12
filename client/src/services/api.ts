@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { ApiResponse, User, Job, Applicant, DashboardStats, ApplicantStatus } from '../types';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL}/api` 
+  : '/api';
+
 const API = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
 });
 
 // Attach JWT token to requests automatically

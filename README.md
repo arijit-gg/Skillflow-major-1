@@ -192,9 +192,9 @@ FROM_NAME=SmartHire ATS
 
 ## 📄 Deliverables Summary for Submission
 
-- **Live Application URL (Vercel)**: `https://smarthire-ats.vercel.app`
-- **Backend API URL (Render)**: `https://smarthire-api.onrender.com`
-- **GitHub Repository**: `https://github.com/recruiter-tech/smarthire-ats`
+- **Live Application URL (Vercel)**: `https://skillflow-major-1.vercel.app`
+- **Backend API URL (Render)**: `https://skillflow-major-1.onrender.com`
+- **GitHub Repository**: `https://github.com/arijit-gg/Skillflow-major-1`
 - **Test Recruiter Credentials**:
   - Email: `recruiter@smarthire.com`
   - Password: `SmartHire2026!`

@@ -16,10 +16,10 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Format path to full API server URL if relative
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
   const fullResumeUrl = resumeUrl.startsWith('http')
     ? resumeUrl
-    : `${window.location.origin}${resumeUrl}`;
+    : `${baseUrl}${resumeUrl}`;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
