@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+// Enable standard command buffering
+mongoose.set('bufferCommands', true);
+
 const connectDB = async () => {
   if (mongoose.connection.readyState === 1) {
     return;
