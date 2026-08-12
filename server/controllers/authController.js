@@ -67,7 +67,15 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    let user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+
+    // Auto-seed data if demo recruiter account is logging into a fresh database instance
+    if (!user && email.toLowerCase() === 'recruiter@smarthire.com' && password === 'SmartHire2026!') {
+      console.log('[Auth] Demo recruiter logging in. Initializing seed dataset...');
+      const seedData = require('../utils/seedData');
+      await seedData();
+      user = await User.findOne({ email: 'recruiter@smarthire.com' }).select('+password');
+    }
 
     if (!user) {
       return res.status(401).json({
@@ -95,7 +103,10 @@ exports.login = async (req, res, next) => {
 // @access  Private
 exports.getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    let user = await User.findById(req.user.id);
+    if (!user) {
+      user = req.user;
+    }
     res.status(200).json({
       success: true,
       data: user,

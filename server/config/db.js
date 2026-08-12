@@ -1,39 +1,47 @@
 const mongoose = require('mongoose');
 
+// Disable command buffering so Mongoose throws immediately rather than hanging for 10 seconds if disconnected
+mongoose.set('bufferCommands', false);
+
 const connectDB = async () => {
-  if (process.env.MONGODB_URI) {
+  const uri = process.env.MONGODB_URI;
+
+  if (uri) {
     try {
-      const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      const conn = await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5000,
       });
-      console.log(`[Database] Connected to MongoDB Atlas/External Host: ${conn.connection.host}`);
-      return;
+      console.log(`[Database] Connected to MongoDB Atlas: ${conn.connection.host}`);
+      return conn;
     } catch (err) {
-      console.warn(`[Database] MongoDB URI connection failed (${err.message}). Trying in-memory server...`);
+      console.warn(`[Database] MongoDB Atlas connection failed: ${err.message}`);
     }
   }
 
-  // Attempt MongoMemoryServer for local development
+  // Attempt local MongoDB
   try {
-    const connStr = 'mongodb://127.0.0.1:27017/smarthire';
-    const conn = await mongoose.connect(connStr, {
+    const conn = await mongoose.connect('mongodb://127.0.0.1:27017/smarthire', {
       serverSelectionTimeoutMS: 2000,
     });
-    console.log(`[Database] Connected to Local MongoDB: ${conn.connection.host}`);
-    return;
+    console.log(`[Database] Connected to Local Mongo: ${conn.connection.host}`);
+    return conn;
   } catch (localErr) {
-    console.warn(`[Database] Local MongoDB unavailable. Initializing MongoMemoryServer...`);
+    console.warn(`[Database] Local Mongo unavailable.`);
   }
 
+  // Attempt MongoMemoryServer
   try {
     const { MongoMemoryServer } = require('mongodb-memory-server');
     const mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
 
-    await mongoose.connect(mongoUri);
+    // Re-enable buffering for in-memory server
+    mongoose.set('bufferCommands', true);
+    const conn = await mongoose.connect(mongoUri);
     console.log(`[Database] In-Memory MongoDB Server running at: ${mongoUri}`);
+    return conn;
   } catch (memErr) {
-    console.warn(`[Database Warning] MongoMemoryServer unavailable in production container (${memErr.message}). App running in cloud mode.`);
+    console.warn(`[Database Warning] MongoMemoryServer unavailable (${memErr.message}).`);
   }
 };
 
