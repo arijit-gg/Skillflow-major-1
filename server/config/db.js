@@ -1,23 +1,37 @@
 const mongoose = require('mongoose');
 
-// Enable standard command buffering
-mongoose.set('bufferCommands', true);
-
 const connectDB = async () => {
   if (mongoose.connection.readyState === 1) {
     return;
   }
 
-  const connStr = process.env.MONGODB_URI || 'mongodb+srv://smarthire_app:SmartHire2026@cluster0.a9yq1.mongodb.net/smarthire?retryWrites=true&w=majority';
+  // Only attempt Atlas if user explicitly configured MONGODB_URI env var on Render
+  if (process.env.MONGODB_URI) {
+    try {
+      const conn = await mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 1500,
+      });
+      console.log(`[Database] Connected to MongoDB Atlas: ${conn.connection.host}`);
+      return conn;
+    } catch (err) {
+      console.warn(`[Database] MongoDB Atlas connection failed (${err.message}).`);
+    }
+  }
 
+  // Attempt local MongoDB with fast 500ms timeout
   try {
+    const connStr = 'mongodb://127.0.0.1:27017/smarthire';
     const conn = await mongoose.connect(connStr, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 500,
     });
-    console.log(`[Database] Connected to MongoDB: ${conn.connection.host}`);
+    console.log(`[Database] Connected to Local Mongo: ${conn.connection.host}`);
     return conn;
-  } catch (err) {
-    console.warn(`[Database] Atlas connection failed (${err.message}). Trying MongoMemoryServer fallback...`);
+  } catch (localErr) {
+    // Silent cloud fallback
+  }
+
+  // Attempt MongoMemoryServer locally
+  if (process.env.NODE_ENV !== 'production') {
     try {
       const { MongoMemoryServer } = require('mongodb-memory-server');
       const mongoServer = await MongoMemoryServer.create();
@@ -27,7 +41,7 @@ const connectDB = async () => {
       console.log(`[Database] In-Memory MongoDB Server running at: ${mongoUri}`);
       return conn;
     } catch (memErr) {
-      console.error(`[Database Error] Failed to initialize in-memory DB: ${memErr.message}`);
+      console.warn(`[Database Warning] In-Memory DB unavailable.`);
     }
   }
 };
