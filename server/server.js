@@ -20,7 +20,7 @@ const app = express();
 
 // Security and CORS middleware
 app.use(helmet({
-  crossOriginResourcePolicy: false, // Allow serving resumes across origins
+  crossOriginResourcePolicy: false,
 }));
 app.use(cors());
 
@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded PDF resumes statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Healthcheck Route (Immediate response for Render health checks)
+// Healthcheck Route (Immediate response)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -42,6 +42,17 @@ app.get('/api/health', (req, res) => {
 
 app.get('/', (req, res) => {
   res.status(200).send('SmartHire ATS API Server is Live!');
+});
+
+// Middleware to ensure Database Connection is ready before processing API requests
+app.use(async (req, res, next) => {
+  if (req.path === '/api/health' || req.path === '/') return next();
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Database connection initializing...' });
+  }
 });
 
 // API Routes
@@ -55,25 +66,22 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-// Listen immediately so Render web service healthcheck passes in < 1 second!
-const server = app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`\n======================================================`);
   console.log(`🚀 SmartHire ATS Backend Server running on port ${PORT}`);
   console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔑 Test Credentials: recruiter@smarthire.com / SmartHire2026!`);
   console.log(`======================================================\n`);
 
-  // Connect database in background
-  connectDB().then(async () => {
-    try {
-      const User = require('./models/User');
-      const userCount = await User.countDocuments();
-      if (userCount === 0) {
-        console.log('[Server] Database is empty. Running automatic seed data...');
-        await seedData();
-      }
-    } catch (err) {
-      console.warn('[Server] Post-DB connect seed check:', err.message);
+  try {
+    await connectDB();
+    const User = require('./models/User');
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('[Server] Database is empty. Auto-seeding test data...');
+      await seedData();
     }
-  });
+  } catch (err) {
+    console.warn('[Server] Post-start connect warning:', err.message);
+  }
 });
